@@ -23,6 +23,20 @@ export default function App() {
   ]);
   const [conceptoPago, setConceptoPago] = useState("Mantenimiento septiembre");
   const [montoPago, setMontoPago] = useState("1200");
+  const [usuarios, setUsuarios] = useState([
+    {
+      id: 1,
+      nombre: "Mesa Directiva",
+      correo: "mesa@losrobles.com",
+      rol: "Administrador",
+    },
+    { id: 2, nombre: "Residente", correo, rol: "Residente" },
+  ]);
+  const [nuevoUsuario, setNuevoUsuario] = useState({
+    nombre: "",
+    correo: "",
+    rol: "Residente",
+  });
   const [quejas, setQuejas] = useState([
     {
       id: 1,
@@ -35,7 +49,14 @@ export default function App() {
 
   const handleLogin = (e) => {
     e.preventDefault();
-    if (correo.trim() !== "") setSesionIniciada(true);
+    if (correo.trim() !== "") {
+      setUsuarios((usuariosActuales) =>
+        usuariosActuales.map((usuario) =>
+          usuario.id === 2 ? { ...usuario, correo } : usuario,
+        ),
+      );
+      setSesionIniciada(true);
+    }
   };
 
   const handlePagar = (e) => {
@@ -54,6 +75,16 @@ export default function App() {
   };
 
   const descargarPDF = () => window.print();
+
+  const agregarUsuario = (e) => {
+    e.preventDefault();
+    setUsuarios([{ id: Date.now(), ...nuevoUsuario }, ...usuarios]);
+    setNuevoUsuario({ nombre: "", correo: "", rol: "Residente" });
+  };
+
+  const eliminarUsuario = (id) => {
+    setUsuarios(usuarios.filter((usuario) => usuario.id !== id));
+  };
 
   const exportarReporte = () => {
     const contenido =
@@ -203,6 +234,9 @@ export default function App() {
               </div>
             </div>
             <p>Última actualización: hoy a las 10:30 h.</p>
+            <button className="btn-primary" onClick={descargarPDF}>
+              Descargar reporte financiero PDF
+            </button>
           </section>
         )}
         {vistaActual === "reportes" && (
@@ -234,25 +268,79 @@ export default function App() {
           // manejo de usuarios
           <section className="card">
             <h3>Gestión de usuarios</h3>
+            <form className="form-pago" onSubmit={agregarUsuario}>
+              <div className="form-group">
+                <label>Nombre:</label>
+                <input
+                  value={nuevoUsuario.nombre}
+                  onChange={(e) =>
+                    setNuevoUsuario({
+                      ...nuevoUsuario,
+                      nombre: e.target.value,
+                    })
+                  }
+                  placeholder="Nombre del usuario"
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label>Correo:</label>
+                <input
+                  type="email"
+                  value={nuevoUsuario.correo}
+                  onChange={(e) =>
+                    setNuevoUsuario({
+                      ...nuevoUsuario,
+                      correo: e.target.value,
+                    })
+                  }
+                  placeholder="usuario@losrobles.com"
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label>Rol:</label>
+                <select
+                  className="select-rol"
+                  value={nuevoUsuario.rol}
+                  onChange={(e) =>
+                    setNuevoUsuario({ ...nuevoUsuario, rol: e.target.value })
+                  }
+                >
+                  <option>Residente</option>
+                  <option>Administrador</option>
+                </select>
+              </div>
+              <button className="btn-primary" type="submit">
+                Añadir usuario
+              </button>
+            </form>
             <table className="tabla-pagos">
               <thead>
                 <tr>
                   <th>Nombre</th>
                   <th>Correo</th>
                   <th>Rol</th>
+                  <th>Acción</th>
                 </tr>
               </thead>
               <tbody>
-                <tr>
-                  <td>Mesa Directiva</td>
-                  <td>mesa@losrobles.com</td>
-                  <td>Administrador</td>
-                </tr>
-                <tr>
-                  <td>Residente</td>
-                  <td>{correo}</td>
-                  <td>Residente</td>
-                </tr>
+                {usuarios.map((usuario) => (
+                  <tr key={usuario.id}>
+                    <td>{usuario.nombre}</td>
+                    <td>{usuario.correo}</td>
+                    <td>{usuario.rol}</td>
+                    <td>
+                      <button
+                        className="btn-secondary"
+                        type="button"
+                        onClick={() => eliminarUsuario(usuario.id)}
+                      >
+                        Quitar
+                      </button>
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </section>
