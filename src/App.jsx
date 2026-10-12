@@ -189,6 +189,12 @@ export default function App() {
         </button>
         <button
           className="btn-secondary"
+          onClick={() => setVistaActual("quejas-admin")}
+        >
+          Quejas administración
+        </button>
+        <button
+          className="btn-secondary"
           onClick={() => setVistaActual("anuncios")}
         >
           Anuncios
@@ -345,59 +351,90 @@ export default function App() {
             </table>
           </section>
         )}
-        {vistaActual === "quejas" && (
+        {(vistaActual === "quejas" || vistaActual === "quejas-admin") && (
           // modulo de quejas
           <section className="card">
             <h3>Quejas e incidencias</h3>
-            <form className="form-pago" onSubmit={registrarQueja}>
-              <div className="form-group">
-                <label>Describe tu queja:</label>
-                <input
-                  value={nuevaQueja}
-                  onChange={(e) => setNuevaQueja(e.target.value)}
-                  placeholder="Describe brevemente el problema"
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label>Fotografía:</label>
-                <input type="file" accept="image/*" />
-              </div>
-              <button className="btn-primary" type="submit">
-                Enviar reporte
-              </button>
-            </form>
-            <table className="tabla-pagos">
-              <thead>
-                <tr>
-                  <th>Reporte</th>
-                  <th>Estatus</th>
-                  <th>Actualizar</th>
-                </tr>
-              </thead>
-              <tbody>
-                {quejas.map((queja) => (
-                  <tr key={queja.id}>
-                    <td>{queja.asunto}</td>
-                    <td>
-                      <span className="badge">{queja.estado}</span>
-                    </td>
-                    <td>
-                      <select
-                        value={queja.estado}
-                        onChange={(e) =>
-                          actualizarQueja(queja.id, e.target.value)
-                        }
-                      >
-                        <option>Abierto</option>
-                        <option>En revisión</option>
-                        <option>Resuelto</option>
-                      </select>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            {vistaActual === "quejas" && (
+              <>
+                <form className="form-pago" onSubmit={registrarQueja}>
+                  <div className="form-group">
+                    <label>Describe tu queja:</label>
+                    <input
+                      value={nuevaQueja}
+                      onChange={(e) => setNuevaQueja(e.target.value)}
+                      placeholder="Describe brevemente el problema"
+                      required
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Fotografía:</label>
+                    <input className="input-file" type="file" accept="image/*" />
+                  </div>
+                  <button className="btn-primary" type="submit">
+                    Enviar reporte
+                  </button>
+                </form>
+                <h4>Quejas activas de los residentes</h4>
+                <table className="tabla-pagos">
+                  <thead>
+                    <tr>
+                      <th>Reporte</th>
+                      <th>Estatus</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {quejas
+                      .filter((queja) => queja.estado !== "Resuelto")
+                      .map((queja) => (
+                        <tr key={queja.id}>
+                          <td>{queja.asunto}</td>
+                          <td>
+                            <span className="badge">{queja.estado}</span>
+                          </td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+              </>
+            )}
+            {vistaActual === "quejas-admin" && (
+              <>
+                <h4>Actualizar estado de quejas</h4>
+                <table className="tabla-pagos">
+                  <thead>
+                    <tr>
+                      <th>Reporte</th>
+                      <th>Estatus</th>
+                      <th>Actualizar</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {quejas.map((queja) => (
+                      <tr key={queja.id}>
+                        <td>{queja.asunto}</td>
+                        <td>
+                          <span className="badge">{queja.estado}</span>
+                        </td>
+                        <td>
+                          <select
+                            className="select-rol"
+                            value={queja.estado}
+                            onChange={(e) =>
+                              actualizarQueja(queja.id, e.target.value)
+                            }
+                          >
+                            <option>Abierto</option>
+                            <option>En revisión</option>
+                            <option>Resuelto</option>
+                          </select>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </>
+            )}
           </section>
         )}
         {vistaActual === "anuncios" && (
