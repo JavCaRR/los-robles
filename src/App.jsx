@@ -46,6 +46,12 @@ export default function App() {
     { id: 2, asunto: "Fuga de agua en el parque", estado: "Resuelto" },
   ]);
   const [nuevaQueja, setNuevaQueja] = useState("");
+  const [notificacionesActivas, setNotificacionesActivas] = useState(false);
+
+  const reglamentos = [
+    { id: 1, nombre: "Reglamento general del fraccionamiento.pdf" },
+    { id: 2, nombre: "Reglamento de áreas comunes.pdf" },
+  ];
 
   const handleLogin = (e) => {
     e.preventDefault();
@@ -110,6 +116,19 @@ export default function App() {
     setQuejas(
       quejas.map((queja) => (queja.id === id ? { ...queja, estado } : queja)),
     );
+  };
+
+  const activarNotificaciones = async () => {
+    if (!('Notification' in window)) {
+      alert("Tu navegador no permite notificaciones.");
+      return;
+    }
+
+    const permiso = await Notification.requestPermission();
+    setNotificacionesActivas(permiso === "granted");
+    if (permiso === "granted") {
+      new Notification("Los Robles", { body: "Las alertas están activadas." });
+    }
   };
 
   if (!sesionIniciada) {
@@ -198,6 +217,12 @@ export default function App() {
           onClick={() => setVistaActual("anuncios")}
         >
           Anuncios
+        </button>
+        <button
+          className="btn-secondary"
+          onClick={() => setVistaActual("reglamentos")}
+        >
+          Reglamentos
         </button>
         <button
           className="btn-secondary"
@@ -455,6 +480,28 @@ export default function App() {
                 comunitario.
               </p>
             </div>
+            <button className="btn-primary" onClick={activarNotificaciones}>
+              {notificacionesActivas ? "Notificaciones activadas" : "Activar alertas"}
+            </button>
+          </section>
+        )}
+        {vistaActual === "reglamentos" && (
+          <section className="card">
+            <h3>Reglamentos del fraccionamiento</h3>
+            <p>Consulta las normas de Residencial Los Robles.</p>
+            <table className="tabla-pagos">
+              <thead>
+                <tr><th>Documento</th><th>Acción</th></tr>
+              </thead>
+              <tbody>
+                {reglamentos.map((reglamento) => (
+                  <tr key={reglamento.id}>
+                    <td>{reglamento.nombre}</td>
+                    <td><button className="btn-secondary" onClick={descargarPDF}>Consultar / descargar</button></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </section>
         )}
         {vistaActual === "manual" && (
