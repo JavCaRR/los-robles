@@ -216,6 +216,27 @@ body {
   font-weight: bold;
 }
 
+.badge-pendiente {
+  background-color: #fff1c2;
+  color: #8a5a00;
+}
+
+.mensaje-pago {
+  border-radius: 6px;
+  padding: .75rem 1rem;
+  font-weight: 600;
+}
+
+.mensaje-pago.success {
+  background-color: #dff5e5;
+  color: #176b3a;
+}
+
+.mensaje-pago.error {
+  background-color: #fde4e4;
+  color: #9b1c1c;
+}
+
 .metricas {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -246,8 +267,78 @@ body {
   background: #edf7ef;
 }
 
+.anuncio-urgente {
+  border-left-color: #c0392b;
+  background-color: #fff0ef;
+}
+
+.anuncio-general {
+  border-left-color: #33875a;
+}
+
+.tipo-anuncio {
+  display: inline-block;
+  margin-bottom: 10px;
+  padding: .2rem .5rem;
+  border-radius: 9999px;
+  background-color: #33875a;
+  color: #fff;
+  font-size: .75rem;
+  font-weight: bold;
+}
+
+.anuncio-urgente .tipo-anuncio {
+  background-color: #c0392b;
+}
+
 .anuncio p {
   margin-top: 8px;
+}
+
+.anuncio > strong {
+  display: block;
+}
+
+.payment-layout {
+  display: grid;
+  grid-template-columns: minmax(230px, 300px) minmax(0, 1fr);
+  grid-template-areas:
+    "form history"
+    "form debt";
+  align-items: start;
+  gap: 20px;
+  min-width: 0;
+  width: 100%;
+}
+
+.payment-form-card {
+  grid-area: form;
+}
+
+.payment-history-card {
+  grid-area: history;
+  min-width: 0;
+}
+
+.payment-debt-card {
+  grid-area: debt;
+  min-width: 0;
+}
+
+.payment-history-card .tabla-pagos {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.payment-table-scroll {
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.payment-debt-card .tabla-pagos {
+  min-width: 440px;
 }
 
 @media (max-width: 900px) {
@@ -259,6 +350,14 @@ body {
 
   .metricas {
     grid-template-columns: repeat(2, 1fr);
+  }
+
+  .payment-layout {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "form"
+      "history"
+      "debt";
   }
 }
 

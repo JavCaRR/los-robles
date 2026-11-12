@@ -8,21 +8,36 @@ export default function App() {
   const [pagos, setPagos] = useState([
     {
       id: 1,
+      residente: "Residente",
       concepto: "Mantenimiento Agosto",
       monto: "$1,200",
       fecha: "2026-08-05",
       estatus: "Pagado",
+      referencia: "LR-20260805-0001",
     },
     {
       id: 2,
+      residente: "Residente",
       concepto: "Cuota de Seguridad",
       monto: "$350",
       fecha: "2026-08-15",
       estatus: "Pagado",
+      referencia: "LR-20260815-0002",
+    },
+  ]);
+  const [adeudos] = useState([
+    {
+      id: 1,
+      concepto: "Mantenimiento Septiembre",
+      monto: "$1,200",
+      fechaLimite: "2026-09-10",
+      estatus: "Pendiente",
     },
   ]);
   const [conceptoPago, setConceptoPago] = useState("Mantenimiento septiembre");
   const [montoPago, setMontoPago] = useState("1200");
+  const [tarjetaPago, setTarjetaPago] = useState("");
+  const [mensajePago, setMensajePago] = useState(null);
   const [usuarios, setUsuarios] = useState([
     {
       id: 1,
@@ -67,17 +82,53 @@ export default function App() {
 
   const handlePagar = (e) => {
     e.preventDefault();
+    const monto = Number(montoPago);
+    const fecha = new Date().toISOString().split("T")[0];
+
+    if (!conceptoPago.trim()) {
+      setMensajePago({
+        tipo: "error",
+        texto: "No se pudo procesar el pago. El concepto es obligatorio.",
+      });
+      return;
+    }
+
+    if (!Number.isFinite(monto) || monto <= 1) {
+      setMensajePago({
+        tipo: "error",
+        texto: "No se pudo procesar el pago. El monto debe ser mayor a 1.",
+      });
+      return;
+    }
+
+    if (tarjetaPago.replace(/\D/g, "").length < 16) {
+      setMensajePago({
+        tipo: "error",
+        texto: "No se pudo procesar el pago. Ingresa un número de tarjeta válido de 16 dígitos.",
+      });
+      return;
+    }
+
+    const referencia = `LR-${fecha.replaceAll("-", "")}-${Date.now()
+      .toString()
+      .slice(-4)}`;
     setPagos([
       {
         id: Date.now(),
-        concepto: conceptoPago,
-        monto: `$${montoPago}`,
-        fecha: new Date().toISOString().split("T")[0],
+        residente: correo || "Residente",
+        concepto: conceptoPago.trim(),
+        monto: `$${monto.toLocaleString("es-MX")}`,
+        fecha,
         estatus: "Pagado",
+        referencia,
       },
       ...pagos,
     ]);
-    alert("¡Pago procesado con éxito!");
+    setMensajePago({
+      tipo: "success",
+      texto: `Pago completado correctamente. Tu referencia es ${referencia}.`,
+    });
+    setTarjetaPago("");
   };
 
   const descargarPDF = () => window.print();
@@ -143,7 +194,7 @@ export default function App() {
             <h2>Residencial Los Robles</h2>
             <form onSubmit={handleLogin}>
               <div className="form-group">
-                <label>Correo Electrónico:</label>
+                <label>Correo Electrónico (obligatorio):</label>
                 <input
                   type="email"
                   required
@@ -153,7 +204,7 @@ export default function App() {
                 />
               </div>
               <div className="form-group">
-                <label>Contraseña:</label>
+                <label>Contraseña (obligatorio):</label>
                 <input type="password" required placeholder="*****" />
               </div>
               <button type="submit" className="btn-primary">
@@ -301,7 +352,7 @@ export default function App() {
             <h3>Gestión de usuarios</h3>
             <form className="form-pago" onSubmit={agregarUsuario}>
               <div className="form-group">
-                <label>Nombre:</label>
+                <label>Nombre (obligatorio):</label>
                 <input
                   value={nuevoUsuario.nombre}
                   onChange={(e) =>
@@ -315,7 +366,7 @@ export default function App() {
                 />
               </div>
               <div className="form-group">
-                <label>Correo:</label>
+                <label>Correo (obligatorio):</label>
                 <input
                   type="email"
                   value={nuevoUsuario.correo}
@@ -384,7 +435,7 @@ export default function App() {
               <>
                 <form className="form-pago" onSubmit={registrarQueja}>
                   <div className="form-group">
-                    <label>Describe tu queja:</label>
+                    <label>Describe tu queja (obligatorio):</label>
                     <input
                       value={nuevaQueja}
                       onChange={(e) => setNuevaQueja(e.target.value)}
@@ -466,14 +517,16 @@ export default function App() {
           // modulo de anuncios
           <section className="card">
             <h3>Tablón de anuncios y alertas</h3>
-            <div className="anuncio">
-              <strong>Alerta urgente</strong>
+            <div className="anuncio anuncio-urgente">
+              <span className="tipo-anuncio">URGENTE</span>
+              <strong>Mantenimiento del suministro de agua</strong>
               <p>
                 El suministro de agua tendrá mantenimiento mañana de 9:00 a
                 12:00 h.
               </p>
             </div>
-            <div className="anuncio">
+            <div className="anuncio anuncio-general">
+              <span className="tipo-anuncio">GENERAL</span>
               <strong>Reunión vecinal</strong>
               <p>
                 La próxima reunión será el sábado a las 18:00 h en el salón
@@ -519,12 +572,17 @@ export default function App() {
         )}
         {vistaActual === "pagos" && (
           // procesador de pagos
-          <>
-            <section className="card">
+          <div className="payment-layout">
+            <section className="card payment-form-card">
               <h3>Realizar Pago de Cuota</h3>
-              <form onSubmit={handlePagar} className="form-pago">
+              {mensajePago && (
+                <p className={`mensaje-pago ${mensajePago.tipo}`} role="status">
+                  {mensajePago.texto}
+                </p>
+              )}
+              <form onSubmit={handlePagar} className="form-pago" noValidate>
                 <div className="form-group">
-                  <label>Concepto:</label>
+                  <label>Concepto (obligatorio):</label>
                   <input
                     value={conceptoPago}
                     onChange={(e) => setConceptoPago(e.target.value)}
@@ -532,19 +590,24 @@ export default function App() {
                   />
                 </div>
                 <div className="form-group">
-                  <label>Monto ($ MXN):</label>
+                  <label>Monto ($ MXN, obligatorio):</label>
                   <input
                     type="number"
+                    min="1"
+                    step="0.01"
                     value={montoPago}
                     onChange={(e) => setMontoPago(e.target.value)}
                     required
                   />
                 </div>
                 <div className="form-group">
-                  <label>Número de Tarjeta:</label>
+                  <label>Número de Tarjeta (obligatorio):</label>
                   <input
                     type="text"
                     placeholder="4152 •••• •••• 1234"
+                    value={tarjetaPago}
+                    onChange={(e) => setTarjetaPago(e.target.value)}
+                    inputMode="numeric"
                     required
                   />
                 </div>
@@ -553,27 +616,31 @@ export default function App() {
                 </button>
               </form>
             </section>
-            <section className="card">
-              <h3>Historial de Pagos y Adeudos</h3>
+            <section className="card payment-history-card">
+              <h3>Pagos realizados</h3>
               <table className="tabla-pagos">
                 <thead>
                   <tr>
+                    <th>Residente</th>
                     <th>Concepto</th>
                     <th>Monto</th>
                     <th>Fecha</th>
                     <th>Estatus</th>
+                    <th>Referencia</th>
                     <th>Acción</th>
                   </tr>
                 </thead>
                 <tbody>
                   {pagos.map((pago) => (
                     <tr key={pago.id}>
+                      <td>{pago.residente}</td>
                       <td>{pago.concepto}</td>
                       <td>{pago.monto}</td>
                       <td>{pago.fecha}</td>
                       <td>
                         <span className="badge">{pago.estatus}</span>
                       </td>
+                      <td>{pago.referencia}</td>
                       <td>
                         <button
                           className="btn-secondary"
@@ -587,7 +654,32 @@ export default function App() {
                 </tbody>
               </table>
             </section>
-          </>
+            <section className="card payment-debt-card">
+              <h3>Adeudos pendientes</h3>
+              <div className="payment-table-scroll">
+                <table className="tabla-pagos">
+                  <thead>
+                    <tr>
+                      <th>Concepto</th>
+                      <th>Monto</th>
+                      <th>Fecha límite</th>
+                      <th>Estatus</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {adeudos.map((adeudo) => (
+                      <tr key={adeudo.id}>
+                        <td>{adeudo.concepto}</td>
+                        <td>{adeudo.monto}</td>
+                        <td>{adeudo.fechaLimite}</td>
+                        <td><span className="badge badge-pendiente">{adeudo.estatus}</span></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          </div>
         )}
       </main>
     </div>
